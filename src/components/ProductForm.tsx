@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Upload, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
     category: '',
     sku: '',
     quantity: 0,
+    image: '',
     customFields: {} as { [key: string]: string }
   });
 
@@ -34,6 +35,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
         category: product.category,
         sku: product.sku,
         quantity: product.quantity,
+        image: product.image || '',
         customFields: product.customFields || {}
       });
     }
@@ -75,12 +77,29 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
     }));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData(prev => ({
+          ...prev,
+          image: event.target?.result as string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" dir="rtl">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        {/* Header with Moroccan styling */}
-        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-amber-50 to-red-50">
-          <h2 className="text-xl font-semibold text-gray-800">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-amber-50 to-red-50 rounded-t-2xl">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-red-600 rounded-lg ml-3 flex items-center justify-center">
+              <Save className="w-5 h-5 text-white" />
+            </div>
             {product ? 'تعديل المنتج' : 'إضافة منتج جديد'}
           </h2>
           <Button
@@ -89,45 +108,82 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
             size="sm"
             className="text-gray-500 hover:text-gray-700"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </Button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-              اسم المنتج *
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Image Upload Section */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-200">
+            <Label className="text-sm font-medium text-gray-700 mb-3 block">
+              صورة المنتج
             </Label>
-            <Input
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="mt-1"
-              placeholder="أدخل اسم المنتج"
-            />
+            <div className="flex items-center gap-4">
+              {formData.image && (
+                <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-blue-200">
+                  <img 
+                    src={formData.image} 
+                    alt="Product" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <Label 
+                  htmlFor="image-upload"
+                  className="flex items-center justify-center w-full h-12 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
+                >
+                  <Upload className="w-5 h-5 ml-2 text-blue-600" />
+                  <span className="text-blue-600 font-medium">
+                    {formData.image ? 'تغيير الصورة' : 'رفع صورة'}
+                  </span>
+                </Label>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-              الوصف
-            </Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              className="mt-1 min-h-[80px]"
-              placeholder="أدخل وصف المنتج"
-            />
-          </div>
+          {/* Basic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                اسم المنتج *
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="mt-2 h-12 text-lg"
+                placeholder="أدخل اسم المنتج"
+              />
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                الوصف
+              </Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className="mt-2 min-h-[100px] text-lg"
+                placeholder="أدخل وصف المنتج"
+              />
+            </div>
+
             <div>
               <Label htmlFor="price" className="text-sm font-medium text-gray-700">
-                السعر *
+                السعر (درهم) *
               </Label>
               <Input
                 id="price"
@@ -138,7 +194,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
                 value={formData.price}
                 onChange={handleChange}
                 required
-                className="mt-1"
+                className="mt-2 h-12 text-lg"
                 placeholder="0.00"
               />
             </div>
@@ -155,51 +211,56 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
                 value={formData.quantity}
                 onChange={handleChange}
                 required
-                className="mt-1"
+                className="mt-2 h-12 text-lg"
                 placeholder="0"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="category" className="text-sm font-medium text-gray-700">
+                الفئة *
+              </Label>
+              <Input
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                required
+                className="mt-2 h-12 text-lg"
+                placeholder="أدخل الفئة"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="sku" className="text-sm font-medium text-gray-700">
+                رمز المنتج *
+              </Label>
+              <Input
+                id="sku"
+                name="sku"
+                value={formData.sku}
+                onChange={handleChange}
+                required
+                className="mt-2 h-12 text-lg"
+                placeholder="أدخل رمز المنتج"
               />
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="category" className="text-sm font-medium text-gray-700">
-              الفئة *
-            </Label>
-            <Input
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-              className="mt-1"
-              placeholder="أدخل الفئة"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="sku" className="text-sm font-medium text-gray-700">
-              رمز المنتج *
-            </Label>
-            <Input
-              id="sku"
-              name="sku"
-              value={formData.sku}
-              onChange={handleChange}
-              required
-              className="mt-1"
-              placeholder="أدخل رمز المنتج"
-            />
-          </div>
-
           {/* Custom Fields */}
           {customFields.length > 0 && (
-            <div className="border-t pt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">الحقول المخصصة</h3>
-              <div className="space-y-3">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-200">
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-600 rounded-md ml-2 flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4 text-white" />
+                </div>
+                الحقول المخصصة
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {customFields.map((field) => (
                   <div key={field.id}>
                     <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
-                      {field.label} {field.required && '*'}
+                      {field.label} {field.required && <span className="text-red-500">*</span>}
                     </Label>
                     {field.type === 'textarea' ? (
                       <Textarea
@@ -207,7 +268,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
                         value={formData.customFields[field.name] || ''}
                         onChange={(e) => handleCustomFieldChange(field.name, e.target.value)}
                         required={field.required}
-                        className="mt-1"
+                        className="mt-2"
                         placeholder={`أدخل ${field.label}`}
                       />
                     ) : (
@@ -217,7 +278,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
                         value={formData.customFields[field.name] || ''}
                         onChange={(e) => handleCustomFieldChange(field.name, e.target.value)}
                         required={field.required}
-                        className="mt-1"
+                        className="mt-2 h-10"
                         placeholder={`أدخل ${field.label}`}
                       />
                     )}
@@ -228,20 +289,20 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-4 pt-6 border-t">
             <Button
               type="button"
               onClick={onCancel}
               variant="outline"
-              className="flex-1"
+              className="flex-1 h-12 text-lg border-2"
             >
               إلغاء
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700"
+              className="flex-1 h-12 text-lg bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700"
             >
-              <Save className="w-4 h-4 ml-2" />
+              <Save className="w-5 h-5 ml-2" />
               {product ? 'تحديث' : 'حفظ'}
             </Button>
           </div>

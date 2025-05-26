@@ -7,6 +7,7 @@ export interface Product {
   category: string;
   sku: string;
   quantity: number;
+  image?: string;
   createdAt?: string;
   customFields?: { [key: string]: string };
 }

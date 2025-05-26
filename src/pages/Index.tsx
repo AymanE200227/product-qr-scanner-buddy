@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Scan, Package, Upload } from 'lucide-react';
+import { Plus, Scan, Package, Upload, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ProductForm from '@/components/ProductForm';
@@ -8,6 +8,7 @@ import ProductCard from '@/components/ProductCard';
 import Scanner from '@/components/Scanner';
 import QRImporter from '@/components/QRImporter';
 import CustomFieldManager from '@/components/CustomFieldManager';
+import ProductDetailsModal from '@/components/ProductDetailsModal';
 import { Product, CustomField } from '@/types/Product';
 
 const Index = () => {
@@ -17,7 +18,9 @@ const Index = () => {
   const [showScanner, setShowScanner] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [showFieldManager, setShowFieldManager] = useState(false);
+  const [showProductDetails, setShowProductDetails] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Load data from localStorage on component mount
@@ -70,6 +73,10 @@ const Index = () => {
     const product = products.find(p => p.id === productId);
     if (product) {
       console.log('المنتج الممسوح ضوئياً:', product);
+      setSelectedProduct(product);
+      setShowProductDetails(true);
+    } else {
+      alert('لم يتم العثور على منتج بهذا الرمز');
     }
     setShowScanner(false);
   };
@@ -78,6 +85,10 @@ const Index = () => {
     const product = products.find(p => p.id === productId);
     if (product) {
       console.log('المنتج المستورد:', product);
+      setSelectedProduct(product);
+      setShowProductDetails(true);
+    } else {
+      alert('لم يتم العثور على منتج بهذا الرمز');
     }
     setShowImporter(false);
   };
@@ -102,75 +113,88 @@ const Index = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8 relative">
-        {/* Header with Moroccan styling */}
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex justify-center items-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-red-600 rounded-lg flex items-center justify-center ml-3 shadow-lg">
-              <Package className="w-10 h-10 text-white" />
+          <div className="flex justify-center items-center mb-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-red-600 rounded-2xl flex items-center justify-center ml-4 shadow-xl">
+              <Package className="w-12 h-12 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-gray-800 mb-1">زربية</h1>
-              <div className="text-lg text-amber-700 font-semibold">إدارة المنتجات</div>
+              <h1 className="text-5xl font-bold text-gray-800 mb-2">زربية</h1>
+              <div className="text-xl text-amber-700 font-semibold">إدارة المنتجات المتقدمة</div>
             </div>
           </div>
-          <p className="text-gray-600 text-lg">إدارة مخزونك باستخدام رموز QR</p>
+          <p className="text-gray-600 text-xl">إدارة مخزونك باستخدام رموز QR بطريقة احترافية</p>
           
-          {/* Decorative Moroccan border */}
-          <div className="mt-6 flex justify-center">
-            <div className="w-32 h-1 bg-gradient-to-r from-amber-500 via-red-500 to-amber-500 rounded-full"></div>
+          {/* Decorative border */}
+          <div className="mt-8 flex justify-center">
+            <div className="w-40 h-2 bg-gradient-to-r from-amber-500 via-red-500 to-amber-500 rounded-full"></div>
           </div>
         </div>
 
-        {/* Action Buttons with Moroccan styling */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Button
             onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-6 py-4 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl border-2 border-amber-300"
+            className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl border-0 h-auto"
           >
-            <Plus className="w-5 h-5 ml-2" />
-            إضافة منتج
+            <Plus className="w-6 h-6 ml-3" />
+            <div className="text-right">
+              <div className="text-lg font-bold">إضافة منتج</div>
+              <div className="text-sm opacity-90">منتج جديد</div>
+            </div>
           </Button>
           
           <Button
             onClick={() => setShowScanner(true)}
             variant="outline"
-            className="border-2 border-green-500 text-green-600 hover:bg-green-50 px-6 py-4 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl"
+            className="border-2 border-green-500 text-green-600 hover:bg-green-50 px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl h-auto"
           >
-            <Scan className="w-5 h-5 ml-2" />
-            مسح رمز QR
+            <Scan className="w-6 h-6 ml-3" />
+            <div className="text-right">
+              <div className="text-lg font-bold">مسح رمز QR</div>
+              <div className="text-sm opacity-70">من الكاميرا</div>
+            </div>
           </Button>
           
           <Button
             onClick={() => setShowImporter(true)}
             variant="outline"
-            className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 px-6 py-4 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl"
+            className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl h-auto"
           >
-            <Upload className="w-5 h-5 ml-2" />
-            استيراد رمز QR
+            <Upload className="w-6 h-6 ml-3" />
+            <div className="text-right">
+              <div className="text-lg font-bold">استيراد QR</div>
+              <div className="text-sm opacity-70">من الجهاز</div>
+            </div>
           </Button>
           
           <Button
             onClick={() => setShowFieldManager(true)}
             variant="outline"
-            className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-6 py-4 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl"
+            className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl h-auto"
           >
-            إدارة الحقول
+            <Settings className="w-6 h-6 ml-3" />
+            <div className="text-right">
+              <div className="text-lg font-bold">إدارة الحقول</div>
+              <div className="text-sm opacity-70">حقول مخصصة</div>
+            </div>
           </Button>
         </div>
 
-        {/* Search Bar with Moroccan styling */}
-        <div className="max-w-md mx-auto mb-8">
+        {/* Search Bar */}
+        <div className="max-w-2xl mx-auto mb-8">
           <Input
             type="text"
             placeholder="البحث عن المنتجات..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-6 py-4 rounded-xl border-2 border-amber-200 focus:border-amber-500 transition-colors text-right bg-white/80 backdrop-blur-sm"
+            className="w-full px-8 py-6 text-xl rounded-2xl border-2 border-amber-200 focus:border-amber-500 transition-colors text-right bg-white/90 backdrop-blur-sm shadow-lg"
           />
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
           {filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
@@ -181,22 +205,22 @@ const Index = () => {
           ))}
         </div>
 
-        {/* Empty State with Moroccan illustration */}
+        {/* Empty State */}
         {filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-amber-200 to-red-200 rounded-full flex items-center justify-center">
-              <Package className="w-16 h-16 text-amber-600" />
+          <div className="text-center py-16">
+            <div className="w-40 h-40 mx-auto mb-8 bg-gradient-to-br from-amber-200 to-red-200 rounded-full flex items-center justify-center">
+              <Package className="w-20 h-20 text-amber-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-500 mb-2">لا توجد منتجات</h3>
-            <p className="text-gray-400 mb-6">
+            <h3 className="text-2xl font-bold text-gray-500 mb-4">لا توجد منتجات</h3>
+            <p className="text-gray-400 mb-8 text-lg">
               {searchTerm ? 'جرب تعديل مصطلحات البحث' : 'أضف منتجك الأول للبدء'}
             </p>
             {!searchTerm && (
               <Button
                 onClick={() => setShowForm(true)}
-                className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white"
+                className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-8 py-4 text-lg rounded-xl"
               >
-                <Plus className="w-5 h-5 ml-2" />
+                <Plus className="w-6 h-6 ml-2" />
                 إضافة أول منتج
               </Button>
             )}
@@ -235,6 +259,21 @@ const Index = () => {
             customFields={customFields}
             onSave={setCustomFields}
             onClose={() => setShowFieldManager(false)}
+          />
+        )}
+
+        {showProductDetails && selectedProduct && (
+          <ProductDetailsModal
+            product={selectedProduct}
+            onClose={() => {
+              setShowProductDetails(false);
+              setSelectedProduct(null);
+            }}
+            onEdit={(product) => {
+              setEditingProduct(product);
+              setShowForm(true);
+              setShowProductDetails(false);
+            }}
           />
         )}
       </div>
