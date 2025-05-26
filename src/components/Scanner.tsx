@@ -19,12 +19,12 @@ const Scanner: React.FC<ScannerProps> = ({ onScanResult, onClose }) => {
       const scanner = new QrScanner(
         videoRef.current,
         (result) => {
-          console.log('QR Code detected:', result.data);
+          console.log('تم اكتشاف رمز QR:', result.data);
           onScanResult(result.data);
         },
         {
           onDecodeError: (err) => {
-            console.log('Decode error:', err);
+            console.log('خطأ في فك التشفير:', err);
           },
           highlightScanRegion: true,
           highlightCodeOutline: true,
@@ -34,8 +34,8 @@ const Scanner: React.FC<ScannerProps> = ({ onScanResult, onClose }) => {
       setQrScanner(scanner);
 
       scanner.start().catch((err) => {
-        console.error('Failed to start camera:', err);
-        setError('Failed to access camera. Please ensure camera permissions are granted.');
+        console.error('فشل في تشغيل الكاميرا:', err);
+        setError('فشل في الوصول للكاميرا. يرجى التأكد من إعطاء صلاحيات الكاميرا.');
       });
 
       return () => {
@@ -54,11 +54,11 @@ const Scanner: React.FC<ScannerProps> = ({ onScanResult, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-50" dir="rtl">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-800">Scan QR Code</h2>
+        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-green-50 to-emerald-50">
+          <h2 className="text-xl font-semibold text-gray-800">مسح رمز QR</h2>
           <Button
             onClick={handleClose}
             variant="ghost"
@@ -76,7 +76,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScanResult, onClose }) => {
               <Camera className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-red-600 mb-4">{error}</p>
               <Button onClick={handleClose} variant="outline">
-                Close
+                إغلاق
               </Button>
             </div>
           ) : (
@@ -87,16 +87,16 @@ const Scanner: React.FC<ScannerProps> = ({ onScanResult, onClose }) => {
                 style={{ aspectRatio: '1/1' }}
               />
               <div className="absolute inset-0 border-2 border-green-400 rounded-lg pointer-events-none">
-                <div className="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-green-400"></div>
                 <div className="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-green-400"></div>
-                <div className="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-green-400"></div>
+                <div className="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-green-400"></div>
                 <div className="absolute bottom-4 right-4 w-6 h-6 border-b-4 border-r-4 border-green-400"></div>
+                <div className="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-green-400"></div>
               </div>
             </div>
           )}
 
           <p className="text-center text-gray-600 text-sm mt-4">
-            Point your camera at a QR code to scan
+            وجه الكاميرا نحو رمز QR للمسح
           </p>
 
           <Button
@@ -104,7 +104,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScanResult, onClose }) => {
             variant="outline"
             className="w-full mt-4"
           >
-            Cancel
+            إلغاء
           </Button>
         </div>
       </div>

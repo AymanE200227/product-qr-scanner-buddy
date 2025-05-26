@@ -5,15 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Product } from '@/types/Product';
+import { Product, CustomField } from '@/types/Product';
 
 interface ProductFormProps {
   product?: Product | null;
+  customFields?: CustomField[];
   onSave: (product: Product | Omit<Product, 'id'>) => void;
   onCancel: () => void;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -21,6 +22,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
     category: '',
     sku: '',
     quantity: 0,
+    customFields: {} as { [key: string]: string }
   });
 
   useEffect(() => {
@@ -32,6 +34,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
         category: product.category,
         sku: product.sku,
         quantity: product.quantity,
+        customFields: product.customFields || {}
       });
     }
   }, [product]);
@@ -40,9 +43,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
     e.preventDefault();
     
     if (product) {
-      onSave({ ...product, ...formData });
+      onSave({ 
+        ...product, 
+        ...formData, 
+        customFields: formData.customFields 
+      });
     } else {
-      onSave({ ...formData, createdAt: new Date().toISOString() });
+      onSave({ 
+        ...formData, 
+        createdAt: new Date().toISOString(),
+        customFields: formData.customFields
+      });
     }
   };
 
@@ -54,13 +65,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
     }));
   };
 
+  const handleCustomFieldChange = (fieldName: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      customFields: {
+        ...prev.customFields,
+        [fieldName]: value
+      }
+    }));
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" dir="rtl">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        {/* Header with Moroccan styling */}
+        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-amber-50 to-red-50">
           <h2 className="text-xl font-semibold text-gray-800">
-            {product ? 'Edit Product' : 'Add New Product'}
+            {product ? 'تعديل المنتج' : 'إضافة منتج جديد'}
           </h2>
           <Button
             onClick={onCancel}
@@ -76,7 +97,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Product Name *
+              اسم المنتج *
             </Label>
             <Input
               id="name"
@@ -85,13 +106,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
               onChange={handleChange}
               required
               className="mt-1"
-              placeholder="Enter product name"
+              placeholder="أدخل اسم المنتج"
             />
           </div>
 
           <div>
             <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-              Description
+              الوصف
             </Label>
             <Textarea
               id="description"
@@ -99,14 +120,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
               value={formData.description}
               onChange={handleChange}
               className="mt-1 min-h-[80px]"
-              placeholder="Enter product description"
+              placeholder="أدخل وصف المنتج"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="price" className="text-sm font-medium text-gray-700">
-                Price *
+                السعر *
               </Label>
               <Input
                 id="price"
@@ -124,7 +145,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
 
             <div>
               <Label htmlFor="quantity" className="text-sm font-medium text-gray-700">
-                Quantity *
+                الكمية *
               </Label>
               <Input
                 id="quantity"
@@ -142,7 +163,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
 
           <div>
             <Label htmlFor="category" className="text-sm font-medium text-gray-700">
-              Category *
+              الفئة *
             </Label>
             <Input
               id="category"
@@ -151,13 +172,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
               onChange={handleChange}
               required
               className="mt-1"
-              placeholder="Enter category"
+              placeholder="أدخل الفئة"
             />
           </div>
 
           <div>
             <Label htmlFor="sku" className="text-sm font-medium text-gray-700">
-              SKU *
+              رمز المنتج *
             </Label>
             <Input
               id="sku"
@@ -166,9 +187,45 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
               onChange={handleChange}
               required
               className="mt-1"
-              placeholder="Enter SKU"
+              placeholder="أدخل رمز المنتج"
             />
           </div>
+
+          {/* Custom Fields */}
+          {customFields.length > 0 && (
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">الحقول المخصصة</h3>
+              <div className="space-y-3">
+                {customFields.map((field) => (
+                  <div key={field.id}>
+                    <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
+                      {field.label} {field.required && '*'}
+                    </Label>
+                    {field.type === 'textarea' ? (
+                      <Textarea
+                        id={field.name}
+                        value={formData.customFields[field.name] || ''}
+                        onChange={(e) => handleCustomFieldChange(field.name, e.target.value)}
+                        required={field.required}
+                        className="mt-1"
+                        placeholder={`أدخل ${field.label}`}
+                      />
+                    ) : (
+                      <Input
+                        id={field.name}
+                        type={field.type}
+                        value={formData.customFields[field.name] || ''}
+                        onChange={(e) => handleCustomFieldChange(field.name, e.target.value)}
+                        required={field.required}
+                        className="mt-1"
+                        placeholder={`أدخل ${field.label}`}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">
@@ -178,14 +235,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
               variant="outline"
               className="flex-1"
             >
-              Cancel
+              إلغاء
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              className="flex-1 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700"
             >
-              <Save className="w-4 h-4 mr-2" />
-              {product ? 'Update' : 'Save'}
+              <Save className="w-4 h-4 ml-2" />
+              {product ? 'تحديث' : 'حفظ'}
             </Button>
           </div>
         </form>
