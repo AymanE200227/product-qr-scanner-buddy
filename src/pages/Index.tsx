@@ -9,6 +9,8 @@ import Scanner from '@/components/Scanner';
 import QRImporter from '@/components/QRImporter';
 import CustomFieldManager from '@/components/CustomFieldManager';
 import ProductDetailsModal from '@/components/ProductDetailsModal';
+import CategorySidebar from '@/components/CategorySidebar';
+import SecurityModal from '@/components/SecurityModal';
 import { Product, CustomField } from '@/types/Product';
 
 const Index = () => {
@@ -22,6 +24,9 @@ const Index = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [securityAction, setSecurityAction] = useState<{type: string, callback: () => void}>({type: "", callback: () => {}});
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -61,12 +66,49 @@ const Index = () => {
   };
 
   const deleteProduct = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
+    setSecurityAction({
+      type: "حذف المنتج",
+      callback: () => {
+        setProducts(products.filter(p => p.id !== id));
+        setShowSecurityModal(false);
+      }
+    });
+    setShowSecurityModal(true);
   };
 
   const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setShowForm(true);
+    setSecurityAction({
+      type: "تعديل المنتج",
+      callback: () => {
+        setEditingProduct(product);
+        setShowForm(true);
+        setShowSecurityModal(false);
+      }
+    });
+    setShowSecurityModal(true);
+  };
+
+  const handleAddProduct = () => {
+    setSecurityAction({
+      type: "إضافة منتج جديد",
+      callback: () => {
+        setEditingProduct(null);
+        setShowForm(true);
+        setShowSecurityModal(false);
+      }
+    });
+    setShowSecurityModal(true);
+  };
+
+  const handleManageFields = () => {
+    setSecurityAction({
+      type: "إدارة الحقول المخصصة",
+      callback: () => {
+        setShowFieldManager(true);
+        setShowSecurityModal(false);
+      }
+    });
+    setShowSecurityModal(true);
   };
 
   const handleScanResult = (productId: string) => {
@@ -93,11 +135,30 @@ const Index = () => {
     setShowImporter(false);
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Extract unique categories
+  const categories = Array.from(new Set(products.map(product => product.category)));
+
+  // Count products per category
+  const productCounts = categories.reduce<{[key: string]: number}>((acc, category) => {
+    acc[category] = products.filter(p => p.category === category).length;
+    return acc;
+  }, {});
+
+  // Filter products by category and search term
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      Object.entries(product.customFields || {}).some(
+        ([key, value]) => 
+          key.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          value.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+    const matchesCategory = selectedCategory === null || product.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50" dir="rtl">
@@ -135,7 +196,7 @@ const Index = () => {
         {/* Action Buttons */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Button
-            onClick={() => setShowForm(true)}
+            onClick={handleAddProduct}
             className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl border-0 h-auto"
           >
             <Plus className="w-6 h-6 ml-3" />
@@ -170,7 +231,7 @@ const Index = () => {
           </Button>
           
           <Button
-            onClick={() => setShowFieldManager(true)}
+            onClick={handleManageFields}
             variant="outline"
             className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl h-auto"
           >
@@ -193,39 +254,56 @@ const Index = () => {
           />
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onEdit={handleEdit}
-              onDelete={deleteProduct}
-            />
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-40 h-40 mx-auto mb-8 bg-gradient-to-br from-amber-200 to-red-200 rounded-full flex items-center justify-center">
-              <Package className="w-20 h-20 text-amber-600" />
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Category Sidebar */}
+          {categories.length > 0 && (
+            <div className="md:w-64">
+              <CategorySidebar 
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onCategorySelect={setSelectedCategory}
+                productCounts={productCounts}
+              />
             </div>
-            <h3 className="text-2xl font-bold text-gray-500 mb-4">لا توجد منتجات</h3>
-            <p className="text-gray-400 mb-8 text-lg">
-              {searchTerm ? 'جرب تعديل مصطلحات البحث' : 'أضف منتجك الأول للبدء'}
-            </p>
-            {!searchTerm && (
-              <Button
-                onClick={() => setShowForm(true)}
-                className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-8 py-4 text-lg rounded-xl"
-              >
-                <Plus className="w-6 h-6 ml-2" />
-                إضافة أول منتج
-              </Button>
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onEdit={handleEdit}
+                  onDelete={deleteProduct}
+                />
+              ))}
+            </div>
+
+            {/* Empty State */}
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-16 bg-white/50 backdrop-blur-sm rounded-2xl">
+                <div className="w-40 h-40 mx-auto mb-8 bg-gradient-to-br from-amber-200 to-red-200 rounded-full flex items-center justify-center">
+                  <Package className="w-20 h-20 text-amber-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-500 mb-4">لا توجد منتجات</h3>
+                <p className="text-gray-400 mb-8 text-lg">
+                  {searchTerm || selectedCategory !== null ? 'جرب تعديل مصطلحات البحث' : 'أضف منتجك الأول للبدء'}
+                </p>
+                {!searchTerm && !selectedCategory && (
+                  <Button
+                    onClick={handleAddProduct}
+                    className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-8 py-4 text-lg rounded-xl"
+                  >
+                    <Plus className="w-6 h-6 ml-2" />
+                    إضافة أول منتج
+                  </Button>
+                )}
+              </div>
             )}
           </div>
-        )}
+        </div>
 
         {/* Modals */}
         {showForm && (
@@ -274,6 +352,14 @@ const Index = () => {
               setShowForm(true);
               setShowProductDetails(false);
             }}
+          />
+        )}
+
+        {showSecurityModal && (
+          <SecurityModal
+            onSuccess={securityAction.callback}
+            onCancel={() => setShowSecurityModal(false)}
+            action={securityAction.type}
           />
         )}
       </div>

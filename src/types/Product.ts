@@ -2,12 +2,10 @@
 export interface Product {
   id: string;
   name: string;
-  description: string;
-  price: number;
   category: string;
-  sku: string;
-  quantity: number;
-  image?: string;
+  frontImage?: string;
+  backImage?: string;
+  supportImage?: string;
   createdAt?: string;
   customFields?: { [key: string]: string };
 }
@@ -18,4 +16,5 @@ export interface CustomField {
   label: string;
   type: 'text' | 'number' | 'textarea';
   required: boolean;
+  isDefault?: boolean;
 }

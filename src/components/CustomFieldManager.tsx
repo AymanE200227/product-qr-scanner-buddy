@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CustomField } from '@/types/Product';
+import SecurityModal from './SecurityModal';
 
 interface CustomFieldManagerProps {
   customFields: CustomField[];
@@ -16,6 +17,8 @@ const CustomFieldManager: React.FC<CustomFieldManagerProps> = ({ customFields, o
   const [fields, setFields] = useState<CustomField[]>(customFields);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [securityAction, setSecurityAction] = useState<{ type: 'add' | 'edit' | 'delete' | 'save', data?: any }>({ type: 'add' });
   const [newField, setNewField] = useState({
     name: '',
     label: '',
@@ -47,14 +50,36 @@ const CustomFieldManager: React.FC<CustomFieldManagerProps> = ({ customFields, o
   };
 
   const deleteField = (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا الحقل؟')) {
-      setFields(fields.filter(field => field.id !== id));
-    }
+    setFields(fields.filter(field => field.id !== id));
   };
 
   const handleSave = () => {
     onSave(fields);
     onClose();
+  };
+
+  const handleSecuritySubmit = (action: 'add' | 'edit' | 'delete' | 'save', data?: any) => {
+    setSecurityAction({ type: action, data });
+    setShowSecurityModal(true);
+  };
+
+  const handleSecuritySuccess = () => {
+    setShowSecurityModal(false);
+    
+    switch (securityAction.type) {
+      case 'add':
+        setShowAddForm(true);
+        break;
+      case 'edit':
+        setEditingField(securityAction.data);
+        break;
+      case 'delete':
+        deleteField(securityAction.data);
+        break;
+      case 'save':
+        handleSave();
+        break;
+    }
   };
 
   const getTypeLabel = (type: string) => {
@@ -93,7 +118,7 @@ const CustomFieldManager: React.FC<CustomFieldManagerProps> = ({ customFields, o
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-bold text-gray-800">قائمة الحقول ({fields.length})</h3>
             <Button
-              onClick={() => setShowAddForm(true)}
+              onClick={() => handleSecuritySubmit('add')}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 h-12 px-6"
             >
               <Plus className="w-5 h-5 ml-2" />
@@ -191,7 +216,7 @@ const CustomFieldManager: React.FC<CustomFieldManagerProps> = ({ customFields, o
                 <h3 className="text-lg font-semibold text-gray-500 mb-2">لا توجد حقول مخصصة</h3>
                 <p className="text-gray-400 mb-4">أضف حقلك الأول للبدء</p>
                 <Button
-                  onClick={() => setShowAddForm(true)}
+                  onClick={() => handleSecuritySubmit('add')}
                   className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                 >
                   <Plus className="w-4 h-4 ml-2" />
@@ -244,7 +269,7 @@ const CustomFieldManager: React.FC<CustomFieldManagerProps> = ({ customFields, o
                           <h4 className="font-bold text-lg text-gray-800">{field.label}</h4>
                           <div className="flex gap-2">
                             <Button
-                              onClick={() => setEditingField(field.id)}
+                              onClick={() => handleSecuritySubmit('edit', field.id)}
                               variant="outline"
                               size="sm"
                               className="border-blue-200 text-blue-600 hover:bg-blue-50"
@@ -252,7 +277,7 @@ const CustomFieldManager: React.FC<CustomFieldManagerProps> = ({ customFields, o
                               <Edit2 className="w-4 h-4" />
                             </Button>
                             <Button
-                              onClick={() => deleteField(field.id)}
+                              onClick={() => handleSecuritySubmit('delete', field.id)}
                               variant="outline"
                               size="sm"
                               className="border-red-200 text-red-600 hover:bg-red-50"
@@ -292,7 +317,7 @@ const CustomFieldManager: React.FC<CustomFieldManagerProps> = ({ customFields, o
               إلغاء
             </Button>
             <Button
-              onClick={handleSave}
+              onClick={() => handleSecuritySubmit('save')}
               className="flex-1 h-12 text-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
             >
               <Save className="w-5 h-5 ml-2" />
@@ -301,6 +326,19 @@ const CustomFieldManager: React.FC<CustomFieldManagerProps> = ({ customFields, o
           </div>
         </div>
       </div>
+      
+      {/* Security Modal */}
+      {showSecurityModal && (
+        <SecurityModal
+          onSuccess={handleSecuritySuccess}
+          onCancel={() => setShowSecurityModal(false)}
+          action={
+            securityAction.type === 'add' ? 'إضافة حقل جديد' :
+            securityAction.type === 'edit' ? 'تعديل حقل' :
+            securityAction.type === 'delete' ? 'حذف حقل' : 'حفظ التغييرات'
+          }
+        />
+      )}
     </div>
   );
 };

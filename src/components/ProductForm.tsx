@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Save, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Save, Upload, Image as ImageIcon, Plus, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,12 +17,10 @@ interface ProductFormProps {
 const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
-    price: 0,
     category: '',
-    sku: '',
-    quantity: 0,
-    image: '',
+    frontImage: '',
+    backImage: '',
+    supportImage: '',
     customFields: {} as { [key: string]: string }
   });
 
@@ -30,12 +28,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
     if (product) {
       setFormData({
         name: product.name,
-        description: product.description,
-        price: product.price,
         category: product.category,
-        sku: product.sku,
-        quantity: product.quantity,
-        image: product.image || '',
+        frontImage: product.frontImage || '',
+        backImage: product.backImage || '',
+        supportImage: product.supportImage || '',
         customFields: product.customFields || {}
       });
     }
@@ -47,14 +43,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
     if (product) {
       onSave({ 
         ...product, 
-        ...formData, 
-        customFields: formData.customFields 
+        ...formData
       });
     } else {
       onSave({ 
         ...formData, 
-        createdAt: new Date().toISOString(),
-        customFields: formData.customFields
+        createdAt: new Date().toISOString()
       });
     }
   };
@@ -63,7 +57,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'price' || name === 'quantity' ? parseFloat(value) || 0 : value
+      [name]: value
     }));
   };
 
@@ -77,14 +71,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (field: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
         setFormData(prev => ({
           ...prev,
-          image: event.target?.result as string
+          [field]: event.target?.result as string
         }));
       };
       reader.readAsDataURL(file);
@@ -114,43 +108,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Image Upload Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-200">
-            <Label className="text-sm font-medium text-gray-700 mb-3 block">
-              صورة المنتج
-            </Label>
-            <div className="flex items-center gap-4">
-              {formData.image && (
-                <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-blue-200">
-                  <img 
-                    src={formData.image} 
-                    alt="Product" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="flex-1">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <Label 
-                  htmlFor="image-upload"
-                  className="flex items-center justify-center w-full h-12 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
-                >
-                  <Upload className="w-5 h-5 ml-2 text-blue-600" />
-                  <span className="text-blue-600 font-medium">
-                    {formData.image ? 'تغيير الصورة' : 'رفع صورة'}
-                  </span>
-                </Label>
-              </div>
-            </div>
-          </div>
-
-          {/* Basic Information */}
+          {/* Required Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <Label htmlFor="name" className="text-sm font-medium text-gray-700">
@@ -168,55 +126,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
             </div>
 
             <div className="md:col-span-2">
-              <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-                الوصف
-              </Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className="mt-2 min-h-[100px] text-lg"
-                placeholder="أدخل وصف المنتج"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="price" className="text-sm font-medium text-gray-700">
-                السعر (درهم) *
-              </Label>
-              <Input
-                id="price"
-                name="price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.price}
-                onChange={handleChange}
-                required
-                className="mt-2 h-12 text-lg"
-                placeholder="0.00"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="quantity" className="text-sm font-medium text-gray-700">
-                الكمية *
-              </Label>
-              <Input
-                id="quantity"
-                name="quantity"
-                type="number"
-                min="0"
-                value={formData.quantity}
-                onChange={handleChange}
-                required
-                className="mt-2 h-12 text-lg"
-                placeholder="0"
-              />
-            </div>
-
-            <div>
               <Label htmlFor="category" className="text-sm font-medium text-gray-700">
                 الفئة *
               </Label>
@@ -230,20 +139,116 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, customFields = [], o
                 placeholder="أدخل الفئة"
               />
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="sku" className="text-sm font-medium text-gray-700">
-                رمز المنتج *
-              </Label>
-              <Input
-                id="sku"
-                name="sku"
-                value={formData.sku}
-                onChange={handleChange}
-                required
-                className="mt-2 h-12 text-lg"
-                placeholder="أدخل رمز المنتج"
-              />
+          {/* Image Upload Sections */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-200">
+            <Label className="text-sm font-medium text-gray-700 mb-3 block">
+              صور المنتج
+            </Label>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Front Image */}
+              <div className="flex flex-col">
+                <Label className="text-xs text-gray-600 mb-2">الصورة الأمامية</Label>
+                <div className="flex items-center gap-4">
+                  {formData.frontImage && (
+                    <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-blue-200">
+                      <img 
+                        src={formData.frontImage} 
+                        alt="Front" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload('frontImage', e)}
+                      className="hidden"
+                      id="front-image-upload"
+                    />
+                    <Label 
+                      htmlFor="front-image-upload"
+                      className="flex items-center justify-center w-full h-12 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
+                    >
+                      <Upload className="w-5 h-5 ml-2 text-blue-600" />
+                      <span className="text-blue-600 font-medium text-sm">
+                        {formData.frontImage ? 'تغيير' : 'رفع'}
+                      </span>
+                    </Label>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Back Image */}
+              <div className="flex flex-col">
+                <Label className="text-xs text-gray-600 mb-2">الصورة الخلفية</Label>
+                <div className="flex items-center gap-4">
+                  {formData.backImage && (
+                    <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-blue-200">
+                      <img 
+                        src={formData.backImage} 
+                        alt="Back" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload('backImage', e)}
+                      className="hidden"
+                      id="back-image-upload"
+                    />
+                    <Label 
+                      htmlFor="back-image-upload"
+                      className="flex items-center justify-center w-full h-12 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
+                    >
+                      <Upload className="w-5 h-5 ml-2 text-blue-600" />
+                      <span className="text-blue-600 font-medium text-sm">
+                        {formData.backImage ? 'تغيير' : 'رفع'}
+                      </span>
+                    </Label>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Support Image */}
+              <div className="flex flex-col">
+                <Label className="text-xs text-gray-600 mb-2">صورة إضافية</Label>
+                <div className="flex items-center gap-4">
+                  {formData.supportImage && (
+                    <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-blue-200">
+                      <img 
+                        src={formData.supportImage} 
+                        alt="Support" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload('supportImage', e)}
+                      className="hidden"
+                      id="support-image-upload"
+                    />
+                    <Label 
+                      htmlFor="support-image-upload"
+                      className="flex items-center justify-center w-full h-12 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
+                    >
+                      <Upload className="w-5 h-5 ml-2 text-blue-600" />
+                      <span className="text-blue-600 font-medium text-sm">
+                        {formData.supportImage ? 'تغيير' : 'رفع'}
+                      </span>
+                    </Label>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

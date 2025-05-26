@@ -1,9 +1,10 @@
 
-import React from 'react';
-import { X, Edit2, Package, Tag, DollarSign, Hash } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Edit2, Package, Tag, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Product } from '@/types/Product';
+import SecurityModal from './SecurityModal';
 
 interface ProductDetailsModalProps {
   product: Product;
@@ -12,6 +13,36 @@ interface ProductDetailsModalProps {
 }
 
 const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, onClose, onEdit }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  
+  const images = [
+    product.frontImage, 
+    product.backImage, 
+    product.supportImage
+  ].filter(Boolean) as string[];
+  
+  const handleEditClick = () => {
+    setShowSecurityModal(true);
+  };
+
+  const handleSecuritySuccess = () => {
+    setShowSecurityModal(false);
+    onEdit(product);
+  };
+
+  const nextImage = () => {
+    if (images.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (images.length > 1) {
+      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" dir="rtl">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -35,15 +66,62 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, onCl
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          {/* Product Image */}
-          {product.image && (
-            <div className="flex justify-center">
-              <div className="w-48 h-48 rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg">
+          {/* Product Images */}
+          {images.length > 0 && (
+            <div className="relative">
+              <div className="w-full h-64 rounded-xl overflow-hidden border-2 border-gray-200">
                 <img 
-                  src={product.image} 
+                  src={images[currentImageIndex]} 
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
+              </div>
+              
+              {images.length > 1 && (
+                <>
+                  <Button
+                    onClick={prevImage}
+                    variant="outline"
+                    size="sm"
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 w-8 h-8 p-0"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    onClick={nextImage}
+                    variant="outline"
+                    size="sm"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 w-8 h-8 p-0"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                    {images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          index === currentImageIndex ? 'bg-amber-600' : 'bg-gray-400'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+              
+              <div className="flex justify-center mt-3 gap-3">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImageIndex(idx)}
+                    className={`w-14 h-14 rounded-lg overflow-hidden border-2 ${
+                      idx === currentImageIndex ? 'border-amber-500' : 'border-gray-200'
+                    }`}
+                  >
+                    <img src={img} alt={`صورة ${idx+1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -56,47 +134,12 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, onCl
             </Badge>
           </div>
 
-          {/* Description */}
-          {product.description && (
-            <div className="bg-gray-50 p-4 rounded-xl">
-              <h4 className="font-semibold text-gray-700 mb-2">الوصف</h4>
-              <p className="text-gray-600 leading-relaxed">{product.description}</p>
-            </div>
-          )}
-
-          {/* Main Details */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
-              <div className="flex items-center mb-2">
-                <DollarSign className="w-5 h-5 text-green-600 ml-2" />
-                <span className="text-sm font-medium text-green-700">السعر</span>
-              </div>
-              <div className="text-2xl font-bold text-green-600">{product.price.toFixed(2)} درهم</div>
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-xl border border-blue-200">
-              <div className="flex items-center mb-2">
-                <Package className="w-5 h-5 text-blue-600 ml-2" />
-                <span className="text-sm font-medium text-blue-700">الكمية</span>
-              </div>
-              <div className="text-2xl font-bold text-blue-600">{product.quantity}</div>
-            </div>
-
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-200">
-              <div className="flex items-center mb-2">
-                <Hash className="w-5 h-5 text-purple-600 ml-2" />
-                <span className="text-sm font-medium text-purple-700">رمز المنتج</span>
-              </div>
-              <div className="text-lg font-bold text-purple-600">{product.sku}</div>
-            </div>
-          </div>
-
           {/* Custom Fields */}
           {product.customFields && Object.keys(product.customFields).length > 0 && (
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200">
               <h4 className="font-semibold text-amber-700 mb-3 flex items-center">
                 <Tag className="w-5 h-5 ml-2" />
-                معلومات إضافية
+                المعلومات التفصيلية
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {Object.entries(product.customFields).map(([key, value]) => (
@@ -119,7 +162,7 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, onCl
           {/* Actions */}
           <div className="flex gap-4 pt-4 border-t">
             <Button
-              onClick={() => onEdit(product)}
+              onClick={handleEditClick}
               className="flex-1 h-12 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               <Edit2 className="w-5 h-5 ml-2" />
@@ -135,6 +178,15 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, onCl
           </div>
         </div>
       </div>
+
+      {/* Security Modal */}
+      {showSecurityModal && (
+        <SecurityModal
+          onSuccess={handleSecuritySuccess}
+          onCancel={() => setShowSecurityModal(false)}
+          action="تعديل المنتج"
+        />
+      )}
     </div>
   );
 };
