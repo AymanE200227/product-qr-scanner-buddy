@@ -1,10 +1,6 @@
-
 import React, { useState } from 'react';
-import { Plus, Scan, Package, Upload, Settings, Camera } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Package } from 'lucide-react';
 import ProductForm from '@/components/ProductForm';
-import ProductCard from '@/components/ProductCard';
 import Scanner from '@/components/Scanner';
 import QRImporter from '@/components/QRImporter';
 import CustomFieldManager from '@/components/CustomFieldManager';
@@ -12,6 +8,11 @@ import ProductDetailsModal from '@/components/ProductDetailsModal';
 import CategorySidebar from '@/components/CategorySidebar';
 import SecurityModal from '@/components/SecurityModal';
 import ImageSearchModal from '@/components/ImageSearchModal';
+import Header from '@/components/Header';
+import ActionButtons from '@/components/ActionButtons';
+import SearchBar from '@/components/SearchBar';
+import ProductsGrid from '@/components/ProductsGrid';
+import EmptyState from '@/components/EmptyState';
 import { Product } from '@/types/Product';
 import { useProducts } from '@/hooks/useProducts';
 
@@ -119,7 +120,6 @@ const Index = () => {
 
   const handleScanResult = (result: string) => {
     console.log('QR Scan result:', result);
-    // Handle QR scan result - could be a product ID or reference
     const foundProduct = products.find(p => p.id === result || p.reference_id === result);
     if (foundProduct) {
       setSelectedProduct(foundProduct);
@@ -130,7 +130,6 @@ const Index = () => {
 
   const handleImportResult = (result: string) => {
     console.log('QR Import result:', result);
-    // Handle QR import result - could be a product ID or reference
     const foundProduct = products.find(p => p.id === result || p.reference_id === result);
     if (foundProduct) {
       setSelectedProduct(foundProduct);
@@ -190,96 +189,20 @@ const Index = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8 relative">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center items-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-red-600 rounded-2xl flex items-center justify-center ml-4 shadow-xl">
-              <Package className="w-12 h-12 text-white" />
-            </div>
-            <div>
-              <h1 className="text-5xl font-bold text-gray-800 mb-2">زربية</h1>
-              <div className="text-xl text-amber-700 font-semibold">إدارة المنتجات المتقدمة</div>
-            </div>
-          </div>
-          <p className="text-gray-600 text-xl">إدارة مخزونك باستخدام رموز QR بطريقة احترافية</p>
-          
-          {/* Decorative border */}
-          <div className="mt-8 flex justify-center">
-            <div className="w-40 h-2 bg-gradient-to-r from-amber-500 via-red-500 to-amber-500 rounded-full"></div>
-          </div>
-        </div>
+        <Header />
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Button
-            onClick={handleAddNewProduct}
-            className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl border-0 h-auto"
-          >
-            <Plus className="w-6 h-6 ml-3" />
-            <div className="text-right">
-              <div className="text-lg font-bold">إضافة منتج</div>
-              <div className="text-sm opacity-90">منتج جديد</div>
-            </div>
-          </Button>
-          
-          <Button
-            onClick={handleImageSearch}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl border-0 h-auto"
-          >
-            <Camera className="w-6 h-6 ml-3" />
-            <div className="text-right">
-              <div className="text-lg font-bold">البحث بالصورة</div>
-              <div className="text-sm opacity-90">التقط و ابحث</div>
-            </div>
-          </Button>
-          
-          <Button
-            onClick={() => setShowScanner(true)}
-            variant="outline"
-            className="border-2 border-green-500 text-green-600 hover:bg-green-50 px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl h-auto"
-          >
-            <Scan className="w-6 h-6 ml-3" />
-            <div className="text-right">
-              <div className="text-lg font-bold">مسح رمز QR</div>
-              <div className="text-sm opacity-70">من الكاميرا</div>
-            </div>
-          </Button>
-          
-          <Button
-            onClick={() => setShowImporter(true)}
-            variant="outline"
-            className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl h-auto"
-          >
-            <Upload className="w-6 h-6 ml-3" />
-            <div className="text-right">
-              <div className="text-lg font-bold">استيراد QR</div>
-              <div className="text-sm opacity-70">من الجهاز</div>
-            </div>
-          </Button>
-          
-          <Button
-            onClick={handleManageFields}
-            variant="outline"
-            className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl h-auto"
-          >
-            <Settings className="w-6 h-6 ml-3" />
-            <div className="text-right">
-              <div className="text-lg font-bold">إدارة الحقول</div>
-              <div className="text-sm opacity-70">حقول مخصصة</div>
-            </div>
-          </Button>
-        </div>
+        <ActionButtons
+          onAddProduct={handleAddNewProduct}
+          onImageSearch={handleImageSearch}
+          onScan={() => setShowScanner(true)}
+          onImport={() => setShowImporter(true)}
+          onManageFields={handleManageFields}
+        />
 
-        {/* Search Bar */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <Input
-            type="text"
-            placeholder="البحث عن المنتجات برقم المرجع أو الاسم..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-8 py-6 text-xl rounded-2xl border-2 border-amber-200 focus:border-amber-500 transition-colors text-right bg-white/90 backdrop-blur-sm shadow-lg"
-          />
-        </div>
+        <SearchBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
 
         <div className="flex flex-col md:flex-row gap-8">
           {/* Category Sidebar */}
@@ -296,38 +219,18 @@ const Index = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onEdit={handleEdit}
-                  onDelete={handleDeleteProduct}
-                />
-              ))}
-            </div>
-
-            {/* Empty State */}
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-16 bg-white/50 backdrop-blur-sm rounded-2xl">
-                <div className="w-40 h-40 mx-auto mb-8 bg-gradient-to-br from-amber-200 to-red-200 rounded-full flex items-center justify-center">
-                  <Package className="w-20 h-20 text-amber-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-500 mb-4">لا توجد منتجات</h3>
-                <p className="text-gray-400 mb-8 text-lg">
-                  {searchTerm || selectedCategory !== null ? 'جرب تعديل مصطلحات البحث' : 'أضف منتجك الأول للبدء'}
-                </p>
-                {!searchTerm && !selectedCategory && (
-                  <Button
-                    onClick={handleAddNewProduct}
-                    className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-8 py-4 text-lg rounded-xl"
-                  >
-                    <Plus className="w-6 h-6 ml-2" />
-                    إضافة أول منتج
-                  </Button>
-                )}
-              </div>
+            {filteredProducts.length > 0 ? (
+              <ProductsGrid
+                products={filteredProducts}
+                onEdit={handleEdit}
+                onDelete={handleDeleteProduct}
+              />
+            ) : (
+              <EmptyState
+                searchTerm={searchTerm}
+                selectedCategory={selectedCategory}
+                onAddProduct={handleAddNewProduct}
+              />
             )}
           </div>
         </div>
@@ -370,7 +273,7 @@ const Index = () => {
         {showFieldManager && (
           <CustomFieldManager
             customFields={customFields}
-            onSave={() => {}} // This will be handled by the hook
+            onSave={() => {}}
             onClose={() => setShowFieldManager(false)}
           />
         )}
