@@ -9,7 +9,75 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      custom_fields: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          label: string
+          name: string
+          required: boolean
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label: string
+          name: string
+          required?: boolean
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          name?: string
+          required?: boolean
+          type?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          back_image: string | null
+          category: string
+          created_at: string
+          custom_fields: Json | null
+          front_image: string | null
+          id: string
+          name: string
+          reference_id: string
+          support_image: string | null
+          updated_at: string
+        }
+        Insert: {
+          back_image?: string | null
+          category: string
+          created_at?: string
+          custom_fields?: Json | null
+          front_image?: string | null
+          id?: string
+          name: string
+          reference_id?: string
+          support_image?: string | null
+          updated_at?: string
+        }
+        Update: {
+          back_image?: string | null
+          category?: string
+          created_at?: string
+          custom_fields?: Json | null
+          front_image?: string | null
+          id?: string
+          name?: string
+          reference_id?: string
+          support_image?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

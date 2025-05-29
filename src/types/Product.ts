@@ -1,6 +1,7 @@
 
 export interface Product {
   id: string;
+  reference_id?: string;
   name: string;
   category: string;
   frontImage?: string;

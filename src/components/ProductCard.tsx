@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Edit2, Trash2, QrCode } from 'lucide-react';
+import { Edit2, Trash2, QrCode, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +30,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit, onDelete }) 
   return (
     <>
       <Card className="group bg-white shadow-lg hover:shadow-xl transition-all duration-300 border-0 rounded-2xl overflow-hidden transform hover:-translate-y-1" dir="rtl">
-        {/* Product Image */}
         {mainImage && (
           <div className="h-48 overflow-hidden">
             <img 
@@ -46,6 +44,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit, onDelete }) 
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <h3 className="font-bold text-lg leading-tight mb-1">{product.name}</h3>
+              {product.reference_id && (
+                <div className="flex items-center text-white text-opacity-90 text-sm">
+                  <Hash className="w-4 h-4 ml-1" />
+                  {product.reference_id}
+                </div>
+              )}
             </div>
             <Badge variant="secondary" className="bg-white bg-opacity-20 text-white border-0 mr-2">
               {product.category}
@@ -54,7 +58,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit, onDelete }) 
         </CardHeader>
 
         <CardContent className="p-4">
-          {/* Custom Fields */}
           {product.customFields && Object.keys(product.customFields).length > 0 && (
             <div className="space-y-1">
               {Object.entries(product.customFields).slice(0, 3).map(([key, value]) => (

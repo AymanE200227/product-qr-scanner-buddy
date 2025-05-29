@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Plus, Scan, Package, Upload, Settings } from 'lucide-react';
+import { Plus, Scan, Package, Upload, Settings, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ProductForm from '@/components/ProductForm';
@@ -11,22 +10,111 @@ import CustomFieldManager from '@/components/CustomFieldManager';
 import ProductDetailsModal from '@/components/ProductDetailsModal';
 import CategorySidebar from '@/components/CategorySidebar';
 import SecurityModal from '@/components/SecurityModal';
+import ImageSearchModal from '@/components/ImageSearchModal';
 import { Product, CustomField } from '@/types/Product';
+import { useProducts } from '@/hooks/useProducts';
 
 const Index = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const {
+    products,
+    customFields,
+    loading,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    searchProductByImage
+  } = useProducts();
+
   const [showForm, setShowForm] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [showFieldManager, setShowFieldManager] = useState(false);
   const [showProductDetails, setShowProductDetails] = useState(false);
+  const [showImageSearch, setShowImageSearch] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [securityAction, setSecurityAction] = useState<{type: string, callback: () => void}>({type: "", callback: () => {}});
+
+  const handleAddProduct = async (product: Omit<Product, 'id'>) => {
+    try {
+      await addProduct(product);
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error adding product:', error);
+    }
+  };
+
+  const handleUpdateProduct = async (updatedProduct: Product) => {
+    try {
+      await updateProduct(updatedProduct);
+      setEditingProduct(null);
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error updating product:', error);
+    }
+  };
+
+  const handleDeleteProduct = (id: string) => {
+    setSecurityAction({
+      type: "حذف المنتج",
+      callback: async () => {
+        try {
+          await deleteProduct(id);
+          setShowSecurityModal(false);
+        } catch (error) {
+          console.error('Error deleting product:', error);
+        }
+      }
+    });
+    setShowSecurityModal(true);
+  };
+
+  const handleEdit = (product: Product) => {
+    setSecurityAction({
+      type: "تعديل المنتج",
+      callback: () => {
+        setEditingProduct(product);
+        setShowForm(true);
+        setShowSecurityModal(false);
+      }
+    });
+    setShowSecurityModal(true);
+  };
+
+  const handleAddNewProduct = () => {
+    setSecurityAction({
+      type: "إضافة منتج جديد",
+      callback: () => {
+        setEditingProduct(null);
+        setShowForm(true);
+        setShowSecurityModal(false);
+      }
+    });
+    setShowSecurityModal(true);
+  };
+
+  const handleManageFields = () => {
+    setSecurityAction({
+      type: "إدارة الحقول المخصصة",
+      callback: () => {
+        setShowFieldManager(true);
+        setShowSecurityModal(false);
+      }
+    });
+    setShowSecurityModal(true);
+  };
+
+  const handleImageSearch = () => {
+    setShowImageSearch(true);
+  };
+
+  const handleProductFoundByImage = (product: Product) => {
+    setSelectedProduct(product);
+    setShowProductDetails(true);
+  };
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -50,91 +138,6 @@ const Index = () => {
     localStorage.setItem('customFields', JSON.stringify(customFields));
   }, [customFields]);
 
-  const addProduct = (product: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-      ...product,
-      id: Date.now().toString(),
-    };
-    setProducts([...products, newProduct]);
-    setShowForm(false);
-  };
-
-  const updateProduct = (updatedProduct: Product) => {
-    setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-    setEditingProduct(null);
-    setShowForm(false);
-  };
-
-  const deleteProduct = (id: string) => {
-    setSecurityAction({
-      type: "حذف المنتج",
-      callback: () => {
-        setProducts(products.filter(p => p.id !== id));
-        setShowSecurityModal(false);
-      }
-    });
-    setShowSecurityModal(true);
-  };
-
-  const handleEdit = (product: Product) => {
-    setSecurityAction({
-      type: "تعديل المنتج",
-      callback: () => {
-        setEditingProduct(product);
-        setShowForm(true);
-        setShowSecurityModal(false);
-      }
-    });
-    setShowSecurityModal(true);
-  };
-
-  const handleAddProduct = () => {
-    setSecurityAction({
-      type: "إضافة منتج جديد",
-      callback: () => {
-        setEditingProduct(null);
-        setShowForm(true);
-        setShowSecurityModal(false);
-      }
-    });
-    setShowSecurityModal(true);
-  };
-
-  const handleManageFields = () => {
-    setSecurityAction({
-      type: "إدارة الحقول المخصصة",
-      callback: () => {
-        setShowFieldManager(true);
-        setShowSecurityModal(false);
-      }
-    });
-    setShowSecurityModal(true);
-  };
-
-  const handleScanResult = (productId: string) => {
-    const product = products.find(p => p.id === productId);
-    if (product) {
-      console.log('المنتج الممسوح ضوئياً:', product);
-      setSelectedProduct(product);
-      setShowProductDetails(true);
-    } else {
-      alert('لم يتم العثور على منتج بهذا الرمز');
-    }
-    setShowScanner(false);
-  };
-
-  const handleImportResult = (productId: string) => {
-    const product = products.find(p => p.id === productId);
-    if (product) {
-      console.log('المنتج المستورد:', product);
-      setSelectedProduct(product);
-      setShowProductDetails(true);
-    } else {
-      alert('لم يتم العثور على منتج بهذا الرمز');
-    }
-    setShowImporter(false);
-  };
-
   // Extract unique categories
   const categories = Array.from(new Set(products.map(product => product.category)));
 
@@ -149,6 +152,7 @@ const Index = () => {
     const matchesSearch = 
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.reference_id && product.reference_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
       Object.entries(product.customFields || {}).some(
         ([key, value]) => 
           key.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -159,6 +163,17 @@ const Index = () => {
     
     return matchesSearch && matchesCategory;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex items-center justify-center">
+        <div className="text-center">
+          <Package className="w-16 h-16 text-amber-600 mx-auto mb-4 animate-spin" />
+          <p className="text-xl text-gray-600">جاري تحميل المنتجات...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50" dir="rtl">
@@ -194,15 +209,26 @@ const Index = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Button
-            onClick={handleAddProduct}
+            onClick={handleAddNewProduct}
             className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl border-0 h-auto"
           >
             <Plus className="w-6 h-6 ml-3" />
             <div className="text-right">
               <div className="text-lg font-bold">إضافة منتج</div>
               <div className="text-sm opacity-90">منتج جديد</div>
+            </div>
+          </Button>
+          
+          <Button
+            onClick={handleImageSearch}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-6 rounded-2xl shadow-xl transition-all duration-200 hover:shadow-2xl border-0 h-auto"
+          >
+            <Camera className="w-6 h-6 ml-3" />
+            <div className="text-right">
+              <div className="text-lg font-bold">البحث بالصورة</div>
+              <div className="text-sm opacity-90">التقط و ابحث</div>
             </div>
           </Button>
           
@@ -247,7 +273,7 @@ const Index = () => {
         <div className="max-w-2xl mx-auto mb-8">
           <Input
             type="text"
-            placeholder="البحث عن المنتجات..."
+            placeholder="البحث عن المنتجات برقم المرجع أو الاسم..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-8 py-6 text-xl rounded-2xl border-2 border-amber-200 focus:border-amber-500 transition-colors text-right bg-white/90 backdrop-blur-sm shadow-lg"
@@ -276,7 +302,7 @@ const Index = () => {
                   key={product.id}
                   product={product}
                   onEdit={handleEdit}
-                  onDelete={deleteProduct}
+                  onDelete={handleDeleteProduct}
                 />
               ))}
             </div>
@@ -293,7 +319,7 @@ const Index = () => {
                 </p>
                 {!searchTerm && !selectedCategory && (
                   <Button
-                    onClick={handleAddProduct}
+                    onClick={handleAddNewProduct}
                     className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white px-8 py-4 text-lg rounded-xl"
                   >
                     <Plus className="w-6 h-6 ml-2" />
@@ -310,11 +336,19 @@ const Index = () => {
           <ProductForm
             product={editingProduct}
             customFields={customFields}
-            onSave={editingProduct ? updateProduct : addProduct}
+            onSave={editingProduct ? handleUpdateProduct : handleAddProduct}
             onCancel={() => {
               setShowForm(false);
               setEditingProduct(null);
             }}
+          />
+        )}
+
+        {showImageSearch && (
+          <ImageSearchModal
+            onClose={() => setShowImageSearch(false)}
+            onProductFound={handleProductFoundByImage}
+            onSearch={searchProductByImage}
           />
         )}
 
@@ -335,7 +369,7 @@ const Index = () => {
         {showFieldManager && (
           <CustomFieldManager
             customFields={customFields}
-            onSave={setCustomFields}
+            onSave={() => {}} // This will be handled by the hook
             onClose={() => setShowFieldManager(false)}
           />
         )}
