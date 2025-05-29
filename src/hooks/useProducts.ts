@@ -17,9 +17,19 @@ export const useProducts = () => {
 
       if (error) throw error;
       
-      const formattedProducts = data?.map(product => ({
-        ...product,
-        customFields: product.custom_fields || {}
+      const formattedProducts: Product[] = data?.map(product => ({
+        id: product.id,
+        reference_id: product.reference_id,
+        name: product.name,
+        category: product.category,
+        frontImage: product.front_image || undefined,
+        backImage: product.back_image || undefined,
+        supportImage: product.support_image || undefined,
+        createdAt: product.created_at,
+        customFields: typeof product.custom_fields === 'object' && product.custom_fields ? 
+          Object.fromEntries(
+            Object.entries(product.custom_fields as Record<string, any>).map(([key, value]) => [key, String(value)])
+          ) : {}
       })) || [];
       
       setProducts(formattedProducts);
@@ -36,7 +46,17 @@ export const useProducts = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setCustomFields(data || []);
+      
+      const formattedFields: CustomField[] = data?.map(field => ({
+        id: field.id,
+        name: field.name,
+        label: field.label,
+        type: field.type as 'text' | 'number' | 'textarea',
+        required: field.required,
+        isDefault: field.is_default
+      })) || [];
+      
+      setCustomFields(formattedFields);
     } catch (error) {
       console.error('Error fetching custom fields:', error);
     } finally {
@@ -61,9 +81,19 @@ export const useProducts = () => {
 
       if (error) throw error;
       
-      const newProduct = {
-        ...data,
-        customFields: data.custom_fields || {}
+      const newProduct: Product = {
+        id: data.id,
+        reference_id: data.reference_id,
+        name: data.name,
+        category: data.category,
+        frontImage: data.front_image || undefined,
+        backImage: data.back_image || undefined,
+        supportImage: data.support_image || undefined,
+        createdAt: data.created_at,
+        customFields: typeof data.custom_fields === 'object' && data.custom_fields ? 
+          Object.fromEntries(
+            Object.entries(data.custom_fields as Record<string, any>).map(([key, value]) => [key, String(value)])
+          ) : {}
       };
       
       setProducts(prev => [newProduct, ...prev]);
@@ -92,9 +122,19 @@ export const useProducts = () => {
 
       if (error) throw error;
 
-      const updated = {
-        ...data,
-        customFields: data.custom_fields || {}
+      const updated: Product = {
+        id: data.id,
+        reference_id: data.reference_id,
+        name: data.name,
+        category: data.category,
+        frontImage: data.front_image || undefined,
+        backImage: data.back_image || undefined,
+        supportImage: data.support_image || undefined,
+        createdAt: data.created_at,
+        customFields: typeof data.custom_fields === 'object' && data.custom_fields ? 
+          Object.fromEntries(
+            Object.entries(data.custom_fields as Record<string, any>).map(([key, value]) => [key, String(value)])
+          ) : {}
       };
 
       setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updated : p));

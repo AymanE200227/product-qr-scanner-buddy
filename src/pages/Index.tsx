@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Plus, Scan, Package, Upload, Settings, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import ProductDetailsModal from '@/components/ProductDetailsModal';
 import CategorySidebar from '@/components/CategorySidebar';
 import SecurityModal from '@/components/SecurityModal';
 import ImageSearchModal from '@/components/ImageSearchModal';
-import { Product, CustomField } from '@/types/Product';
+import { Product } from '@/types/Product';
 import { useProducts } from '@/hooks/useProducts';
 
 const Index = () => {
@@ -116,27 +117,27 @@ const Index = () => {
     setShowProductDetails(true);
   };
 
-  // Load data from localStorage on component mount
-  useEffect(() => {
-    const savedProducts = localStorage.getItem('products');
-    if (savedProducts) {
-      setProducts(JSON.parse(savedProducts));
+  const handleScanResult = (result: string) => {
+    console.log('QR Scan result:', result);
+    // Handle QR scan result - could be a product ID or reference
+    const foundProduct = products.find(p => p.id === result || p.reference_id === result);
+    if (foundProduct) {
+      setSelectedProduct(foundProduct);
+      setShowProductDetails(true);
     }
-    
-    const savedCustomFields = localStorage.getItem('customFields');
-    if (savedCustomFields) {
-      setCustomFields(JSON.parse(savedCustomFields));
+    setShowScanner(false);
+  };
+
+  const handleImportResult = (result: string) => {
+    console.log('QR Import result:', result);
+    // Handle QR import result - could be a product ID or reference
+    const foundProduct = products.find(p => p.id === result || p.reference_id === result);
+    if (foundProduct) {
+      setSelectedProduct(foundProduct);
+      setShowProductDetails(true);
     }
-  }, []);
-
-  // Save data to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem('products', JSON.stringify(products));
-  }, [products]);
-
-  useEffect(() => {
-    localStorage.setItem('customFields', JSON.stringify(customFields));
-  }, [customFields]);
+    setShowImporter(false);
+  };
 
   // Extract unique categories
   const categories = Array.from(new Set(products.map(product => product.category)));
